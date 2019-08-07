@@ -7,6 +7,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
+import org.hibernate.engine.spi.ExecuteUpdateResultCheckStyle;
+
 import br.com.sistema.entity.Cliente;
 import br.com.sistema.entity.Procedimento;
 import br.com.sistema.entity.Solicitacao;
@@ -29,11 +31,11 @@ public class ClienteRepository {
 	
 	public Cliente excluirCliente(Integer idCliente) {
 		try {
+			this.em.createQuery("update Cliente set excluido = true where idCliente = :idCliente")
+				.setParameter("idCliente", idCliente)
+				.executeUpdate();
 			Cliente c = this.em.find(Cliente.class, idCliente);
-			c.setExcluido(true);
-			c = this.em.merge(c);
-			this.em.detach(c);
-			c.setNomePlano(c.getPlano() != null ? c.getPlano().getNome() : null);
+			c.setNomePlano(c.getPlano().getNome());
 			c.setPlano(null);
 			return c;
 		} catch(Exception e) {
@@ -81,7 +83,14 @@ public class ClienteRepository {
 
 	public Cliente editarCliente(Cliente c) {
 		try {
-			return c = this.em.merge(c);
+			this.em.createQuery("update Cliente set nome = :nome, plano = :plano, dataNascimento = :dataNascimento, sexo = :sexo where idCliente = :idCliente")
+				.setParameter("nome", c.getNome())
+				.setParameter("plano", c.getPlano())
+				.setParameter("dataNascimento", c.getDataNascimento())
+				.setParameter("sexo", c.getSexo())
+				.setParameter("idCliente", c.getIdCliente())
+				.executeUpdate();
+			return c;
 		} catch(Exception e) {
 			return null;
 		}
